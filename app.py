@@ -14,6 +14,8 @@ from pinecone import Pinecone, ServerlessSpec
 from langchain.chains import RetrievalQA
 from fastapi import BackgroundTasks
 
+load_dotenv()
+
 # upstage models
 chat_upstage = ChatUpstage()
 embedding_upstage = UpstageEmbeddings(model="embedding-query")
@@ -22,8 +24,6 @@ pinecone_api_key = os.environ.get("PINECONE_API_KEY")
 pc = Pinecone(api_key=pinecone_api_key)
 index_name = "galaxy-a35"
 pdf_path = "Galaxy_A_35.pdf"
-
-load_dotenv()
 
 # create new index
 if index_name not in pc.list_indexes().names():
