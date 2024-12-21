@@ -1,18 +1,15 @@
 import os
-
-from fastapi import FastAPI
-from pydantic import BaseModel
-from dotenv import load_dotenv
-from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
+
+from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from langchain.chains import RetrievalQA
+from langchain_pinecone import PineconeVectorStore
 from langchain_upstage import ChatUpstage
 from langchain_upstage import UpstageEmbeddings
-from langchain_upstage import UpstageDocumentParseLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
-from langchain.chains import RetrievalQA
-from fastapi import BackgroundTasks
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -23,7 +20,6 @@ embedding_upstage = UpstageEmbeddings(model="embedding-query")
 pinecone_api_key = os.environ.get("PINECONE_API_KEY")
 pc = Pinecone(api_key=pinecone_api_key)
 index_name = "galaxy-a35"
-pdf_path = "Galaxy_A_35.pdf"
 
 # create new index
 if index_name not in pc.list_indexes().names():
@@ -119,37 +115,6 @@ async def chat_endpoint(req: MessageRequest):
 @app.get("/health")
 @app.get("/")
 async def health_check():
-    return {"status": "ok"}
-
-
-def embed():
-    print("start")
-    document_parse_loader = UpstageDocumentParseLoader(
-        pdf_path,
-        output_format='html',  # 결과물 형태 : HTML
-        coordinates=False)  # 이미지 OCR 좌표계 가지고 오지 않기
-
-    docs = document_parse_loader.load()
-
-    # Split the document into chunks
-
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=100)
-
-    # Embed the splits
-
-    splits = text_splitter.split_documents(docs)
-
-    PineconeVectorStore.from_documents(
-        splits, embedding_upstage, index_name=index_name
-    )
-    print("end")
-
-
-@app.post("/embed")
-async def load_pdf():
-    embed()
     return {"status": "ok"}
 
 
